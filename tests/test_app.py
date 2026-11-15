@@ -13,7 +13,7 @@ from unittest import mock
 
 import requests
 
-from ip_address_app import api_client, cli, formatter, report
+from ip_verse_app import api_client, cli, formatter, report
 
 
 def fake_response(payload, status=200):
