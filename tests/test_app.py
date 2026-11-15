@@ -41,7 +41,7 @@ IPAPI_SAMPLE = {
     "org": "GOOGLE",
 }
 
-
+#Test suite verifying IP address scope classification (Global, Private, Loopback, Link-local, Multicast)
 class ClassifyAddressTests(unittest.TestCase):
     def test_known_scopes(self):
         cases = {
@@ -66,37 +66,37 @@ class ApiClientTests(unittest.TestCase):
     def test_fetch_public_ip_v4(self, get):
         get.return_value = fake_response({"ip": "203.0.113.7"})
         self.assertEqual(api_client.fetch_public_ip(4), "203.0.113.7")
-
+#Ensure IPLookupError is raised when an IPv4 address is returned for an IPv6 request
     @mock.patch("ip_address_app.api_client.requests.get")
     def test_fetch_public_ip_rejects_wrong_version(self, get):
         get.return_value = fake_response({"ip": "203.0.113.7"})
         with self.assertRaises(api_client.IPLookupError):
             api_client.fetch_public_ip(6)
-
+#Ensure malformed or non-IP strings from the API trigger an IPLookupError
     @mock.patch("ip_address_app.api_client.requests.get")
     def test_fetch_public_ip_rejects_garbage(self, get):
         get.return_value = fake_response({"ip": "not-an-ip"})
         with self.assertRaises(api_client.IPLookupError):
             api_client.fetch_public_ip(4)
-
+#Verify network connection failures are caught and converted to IPLookupError
     @mock.patch("ip_address_app.api_client.requests.get")
     def test_connection_error_becomes_lookup_error(self, get):
         get.side_effect = requests.exceptions.ConnectionError()
         with self.assertRaises(api_client.IPLookupError):
             api_client.fetch_public_ip(6)
-
+#Verify request timeouts raise an IPLookupError containing a clear timeout message
     @mock.patch("ip_address_app.api_client.requests.get")
     def test_timeout_becomes_lookup_error(self, get):
         get.side_effect = requests.exceptions.Timeout()
         with self.assertRaisesRegex(api_client.IPLookupError, "timed out"):
             api_client.fetch_public_ip(4)
-
+#Ensure HTTP 429 responses raise a user-friendly rate limit error
     @mock.patch("ip_address_app.api_client.requests.get")
     def test_rate_limit_message(self, get):
         get.return_value = fake_response({}, status=429)
         with self.assertRaisesRegex(api_client.IPLookupError, "rate limit"):
             api_client.fetch_ip_details("8.8.8.8")
-
+#check
     @mock.patch("ip_address_app.api_client.requests.get")
     def test_fetch_ip_details_normalises_fields(self, get):
         get.return_value = fake_response(IPAPI_SAMPLE)
@@ -113,7 +113,7 @@ class ApiClientTests(unittest.TestCase):
         with self.assertRaisesRegex(api_client.IPLookupError, "RateLimited"):
             api_client.fetch_ip_details("8.8.8.8")
 
-
+#Test suite verifying report assembly, fallback handling, and JSON file export
 class ReportTests(unittest.TestCase):
     @mock.patch("ip_address_app.report.fetch_ip_details")
     @mock.patch("ip_address_app.report.fetch_public_ip")
@@ -125,7 +125,7 @@ class ReportTests(unittest.TestCase):
         self.assertEqual(result["ipv4"]["ip"], "8.8.8.8")
         self.assertEqual(result["ipv6"]["version"], 6)
         self.assertEqual(result["notes"], [])
-
+# Verify IPv6 failure degrades gracefully to an IPv4-only report with an explanatory note
     @mock.patch("ip_address_app.report.fetch_ip_details")
     @mock.patch("ip_address_app.report.fetch_public_ip")
     def test_ipv6_missing_is_a_note_not_a_crash(self, fetch_ip, fetch_details):
@@ -140,7 +140,7 @@ class ReportTests(unittest.TestCase):
         self.assertIsNone(result["ipv6"])
         self.assertIn("IPv4 only", result["connectivity"])
         self.assertTrue(any("IPv6" in note for note in result["notes"]))
-
+#Verify partial report still displays the IP address even if geolocation lookup fails
     @mock.patch("ip_address_app.report.fetch_ip_details")
     def test_details_failure_keeps_the_address(self, fetch_details):
         fetch_details.side_effect = api_client.IPLookupError("rate limit")
@@ -148,13 +148,13 @@ class ReportTests(unittest.TestCase):
         self.assertEqual(result["ipv4"]["ip"], "8.8.8.8")
         self.assertIsNone(result["ipv4"]["isp"])
         self.assertEqual(len(result["notes"]), 1)
-
+#Ensure private/local IP addresses are classified locally without leaking to external APIs
     @mock.patch("ip_address_app.report.fetch_ip_details")
     def test_private_address_is_not_sent_to_the_api(self, fetch_details):
         result = report.build_report(ip="192.168.1.10")
         fetch_details.assert_not_called()
         self.assertEqual(result["ipv4"]["scope"], "Private / reserved")
-
+#Verify invalid user-supplied IP addresses are rejected before making network calls
     def test_invalid_address_is_rejected(self):
         with self.assertRaises(api_client.IPLookupError):
             report.build_report(ip="999.1.1.1")
@@ -167,7 +167,7 @@ class ReportTests(unittest.TestCase):
             with open(path, encoding="utf-8") as handle:
                 self.assertEqual(json.load(handle), data)
 
-
+#Test suite verifying ASCII table alignment, ANSI color toggles, and JSON serialization
 class FormatterTests(unittest.TestCase):
     def setUp(self):
         record = api_client.normalize_details("8.8.8.8", IPAPI_SAMPLE)
@@ -202,7 +202,7 @@ class FormatterTests(unittest.TestCase):
     def test_json_round_trip(self):
         self.assertEqual(json.loads(formatter.to_json(self.sample)), self.sample)
 
-
+#Test suite verifying CLI argument parsing, file saving, and exit status codes
 class CliTests(unittest.TestCase):
     def setUp(self):
         record = api_client.normalize_details("8.8.8.8", IPAPI_SAMPLE)
