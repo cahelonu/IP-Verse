@@ -1,6 +1,6 @@
 ## What does this pull request do?
 
-<!-- One or two sentences. -->
+<!-- One or two sentences.. -->
 
 ## Linked task
 
