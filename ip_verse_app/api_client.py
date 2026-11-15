@@ -1,27 +1,19 @@
-"""What this module does
-1. Finds the computer's current public IPv4 and IPv6 address (ipify API).
-2. Looks up details for an address: ISP, ASN, network, location (ipapi.co).
-3. Normalises the raw API answers into one predictable dictionary, so no
-   other module needs to know which API provider was used.
+# What this module does
+    # Finds the computer's current public IPv4 and IPv6 address (ipify API).
+    # Looks up details for an address: ISP, ASN, network, location (ipapi.co).
+    # Normalises the raw API answers into one predictable dictionary, so no other module needs to know which API provider was used.
 
-Nothing here prints anything. Printing is the job of formatter.py.
-To change API provider, only this file needs to change, as long as
-normalize_details() keeps returning the same keys.
-
-APIs used
-* https://api.ipify.org?format=json   -> {"ip": "203.0.113.5"}      (IPv4 only)
-* https://api6.ipify.org?format=json  -> {"ip": "2001:db8::1"}      (IPv6 only)
-* https://ipapi.co/<ip>/json/         -> JSON with org, asn, city, ...
-
-The free tier of ipapi.co is rate limited (HTTP 429 when exceeded).
-"""
+# APIs used#
+    # https://api.ipify.org?format=json   -> {"ip": "203.0.113.5"}      (IPv4 only)
+    # https://api6.ipify.org?format=json  -> {"ip": "2001:db8::1"}      (IPv6 only)
+    # https://ipapi.co/<ip>/json/         -> JSON with org, asn, city, ...
 
 from __future__ import annotations
 
 import ipaddress
 from typing import Any, Dict, Optional
 
-import requests # pyright: ignore[reportMissingModuleSource]
+import requests
 
 # One URL per IP version. The api6 host only answers over IPv6.
 IPIFY_URLS = {
