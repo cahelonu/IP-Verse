@@ -89,26 +89,11 @@ IP-Verse integrates two publicly accessible APIs:
 **Technical note:** The application uses separate ipify endpoints for IPv4 and IPv6 detection. Retrieved addresses are then passed to ipapi.co for additional network information. Both services offer free access without requiring an API key, although ipapi.co applies rate limits to its free tier.
 
 
-## 🧪 Testing and Quality Assurance
-
-A reliable network utility should be able to handle more than just a successful API response. All external API calls are mocked during testing, allowing the test suite to run without an active internet connection.
-
+## Testing and Quality Assurance
 To run the tests:
 
 ```bash
 python -m unittest discover -v
 ```
-
-## 🛠️ Keeping the Project Alive
-
-IP-Verse is designed with modularity and maintainability in mind. Future contributors can extend the application without having to rewrite its entire structure.
-
-A few pointers for working with the codebase:
-
-- **Adding new network fields:** Update `normalize_details()` in `api_client.py` and `build_rows()` in `formatter.py`.
-- **Changing API providers:** Modify `api_client.py` while preserving the expected output keys from `normalize_details()`.
-- **Maintaining application stability:** Run the unit tests before submitting changes.
-- **Extending functionality:** Follow the existing modular structure when introducing new features.
-
 
 **Repository:** [github.com/cahelonu/IP-Verse](https://github.com/cahelonu/IP-Verse)
