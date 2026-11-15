@@ -21,8 +21,17 @@ from .report import build_report, save_report
 def parse_args(argv: Optional[List[str]] = None) -> argparse.Namespace:
     """Define and read the command-line options."""
     parser = argparse.ArgumentParser(
-        prog="ip-address-app",
-        description="Show your public IPv4 and IPv6 address with ISP, ASN and location.",
+        prog="python main.py",
+        description="IP-Verse: show your public IPv4 and IPv6 address with ISP, ASN and location.",
+        epilog=(
+            "examples:\n"
+            "  python main.py                  show your own IPv4 and IPv6 address\n"
+            "  python main.py --ip 8.8.8.8     look up any address\n"
+            "  python main.py -4 --json        IPv4 only, printed as JSON\n"
+            "  python main.py --save out.json  also save the report to a file"
+        ),
+        # Keep the line breaks in the examples instead of re-wrapping them.
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument("--ip", metavar="ADDRESS",
                         help="look up this IPv4/IPv6 address instead of your own")
