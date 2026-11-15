@@ -13,7 +13,7 @@ from unittest import mock
 
 import requests
 
-from ip_address_app import api_client, cli, formatter, report
+from ip_verse_app import api_client, cli, formatter, report
 
 
 def fake_response(payload, status=200):
@@ -62,42 +62,42 @@ class ClassifyAddressTests(unittest.TestCase):
 
 
 class ApiClientTests(unittest.TestCase):
-    @mock.patch("ip_address_app.api_client.requests.get")
+    @mock.patch("ip_verse_app.api_client.requests.get")
     def test_fetch_public_ip_v4(self, get):
         get.return_value = fake_response({"ip": "203.0.113.7"})
         self.assertEqual(api_client.fetch_public_ip(4), "203.0.113.7")
 
-    @mock.patch("ip_address_app.api_client.requests.get")
+    @mock.patch("ip_verse_app.api_client.requests.get")
     def test_fetch_public_ip_rejects_wrong_version(self, get):
         get.return_value = fake_response({"ip": "203.0.113.7"})
         with self.assertRaises(api_client.IPLookupError):
             api_client.fetch_public_ip(6)
 
-    @mock.patch("ip_address_app.api_client.requests.get")
+    @mock.patch("ip_verse_app.api_client.requests.get")
     def test_fetch_public_ip_rejects_garbage(self, get):
         get.return_value = fake_response({"ip": "not-an-ip"})
         with self.assertRaises(api_client.IPLookupError):
             api_client.fetch_public_ip(4)
 
-    @mock.patch("ip_address_app.api_client.requests.get")
+    @mock.patch("ip_verse_app.api_client.requests.get")
     def test_connection_error_becomes_lookup_error(self, get):
         get.side_effect = requests.exceptions.ConnectionError()
         with self.assertRaises(api_client.IPLookupError):
             api_client.fetch_public_ip(6)
 
-    @mock.patch("ip_address_app.api_client.requests.get")
+    @mock.patch("ip_verse_app.api_client.requests.get")
     def test_timeout_becomes_lookup_error(self, get):
         get.side_effect = requests.exceptions.Timeout()
         with self.assertRaisesRegex(api_client.IPLookupError, "timed out"):
             api_client.fetch_public_ip(4)
 
-    @mock.patch("ip_address_app.api_client.requests.get")
+    @mock.patch("ip_verse_app.api_client.requests.get")
     def test_rate_limit_message(self, get):
         get.return_value = fake_response({}, status=429)
         with self.assertRaisesRegex(api_client.IPLookupError, "rate limit"):
             api_client.fetch_ip_details("8.8.8.8")
 
-    @mock.patch("ip_address_app.api_client.requests.get")
+    @mock.patch("ip_verse_app.api_client.requests.get")
     def test_fetch_ip_details_normalises_fields(self, get):
         get.return_value = fake_response(IPAPI_SAMPLE)
         record = api_client.fetch_ip_details("8.8.8.8")
@@ -107,7 +107,7 @@ class ApiClientTests(unittest.TestCase):
         self.assertEqual(record["version"], 4)
         self.assertEqual(record["scope"], api_client.SCOPE_GLOBAL)
 
-    @mock.patch("ip_address_app.api_client.requests.get")
+    @mock.patch("ip_verse_app.api_client.requests.get")
     def test_error_body_raises(self, get):
         get.return_value = fake_response({"error": True, "reason": "RateLimited"})
         with self.assertRaisesRegex(api_client.IPLookupError, "RateLimited"):
@@ -115,8 +115,8 @@ class ApiClientTests(unittest.TestCase):
 
 
 class ReportTests(unittest.TestCase):
-    @mock.patch("ip_address_app.report.fetch_ip_details")
-    @mock.patch("ip_address_app.report.fetch_public_ip")
+    @mock.patch("ip_verse_app.report.fetch_ip_details")
+    @mock.patch("ip_verse_app.report.fetch_public_ip")
     def test_dual_stack(self, fetch_ip, fetch_details):
         fetch_ip.side_effect = lambda v: "8.8.8.8" if v == 4 else "2001:4860:4860::8888"
         fetch_details.side_effect = lambda ip: api_client.normalize_details(ip, IPAPI_SAMPLE)
@@ -126,8 +126,8 @@ class ReportTests(unittest.TestCase):
         self.assertEqual(result["ipv6"]["version"], 6)
         self.assertEqual(result["notes"], [])
 
-    @mock.patch("ip_address_app.report.fetch_ip_details")
-    @mock.patch("ip_address_app.report.fetch_public_ip")
+    @mock.patch("ip_verse_app.report.fetch_ip_details")
+    @mock.patch("ip_verse_app.report.fetch_public_ip")
     def test_ipv6_missing_is_a_note_not_a_crash(self, fetch_ip, fetch_details):
         def side_effect(version):
             if version == 6:
@@ -141,7 +141,7 @@ class ReportTests(unittest.TestCase):
         self.assertIn("IPv4 only", result["connectivity"])
         self.assertTrue(any("IPv6" in note for note in result["notes"]))
 
-    @mock.patch("ip_address_app.report.fetch_ip_details")
+    @mock.patch("ip_verse_app.report.fetch_ip_details")
     def test_details_failure_keeps_the_address(self, fetch_details):
         fetch_details.side_effect = api_client.IPLookupError("rate limit")
         result = report.build_report(ip="8.8.8.8")
@@ -149,7 +149,7 @@ class ReportTests(unittest.TestCase):
         self.assertIsNone(result["ipv4"]["isp"])
         self.assertEqual(len(result["notes"]), 1)
 
-    @mock.patch("ip_address_app.report.fetch_ip_details")
+    @mock.patch("ip_verse_app.report.fetch_ip_details")
     def test_private_address_is_not_sent_to_the_api(self, fetch_details):
         result = report.build_report(ip="192.168.1.10")
         fetch_details.assert_not_called()
@@ -217,7 +217,7 @@ class CliTests(unittest.TestCase):
 
     def run_cli(self, argv, built=None):
         out, err = io.StringIO(), io.StringIO()
-        with mock.patch("ip_address_app.cli.build_report", return_value=built or self.sample):
+        with mock.patch("ip_verse_app.cli.build_report", return_value=built or self.sample):
             with redirect_stdout(out), redirect_stderr(err):
                 code = cli.main(argv)
         return code, out.getvalue(), err.getvalue()
@@ -253,7 +253,7 @@ class CliTests(unittest.TestCase):
         self.assertIn("not a valid", err.getvalue())
 
     def test_flags_are_passed_to_build_report(self):
-        with mock.patch("ip_address_app.cli.build_report", return_value=self.sample) as build:
+        with mock.patch("ip_verse_app.cli.build_report", return_value=self.sample) as build:
             with redirect_stdout(io.StringIO()):
                 cli.main(["-4"])
         build.assert_called_once_with(ip=None, want_v4=True, want_v6=False)
