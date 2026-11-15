@@ -16,8 +16,6 @@ from .api_client import (
 
 def _describe(address: str, notes: List[str]) -> Dict[str, Any]:
     # Return the detail record for one (1) address.
-
-    # Non-public addresses (192.168.x.x, fe80::, ...) are not sent to the API, because geolocation makes no sense for them and it saves the rate limit.
     # If the API fails we still return a record with the address and its scope, and add a note so the user knows why the details are missing.
 
     scope = classify_address(address)
