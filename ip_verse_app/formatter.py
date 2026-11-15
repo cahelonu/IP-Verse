@@ -92,7 +92,7 @@ def render_table(title: str, rows: List[Tuple[str, str]], use_color: bool = Fals
 
 def render_report(report: Dict[str, Any], use_color: bool = False) -> str:
     """Return the complete terminal output for a report."""
-    parts: List[str] = [paint("IPv4 / IPv6 Address Application", BOLD, use_color)]
+    parts: List[str] = [paint("IP-Verse: A Python-based IPv4/IPv6 Address Lookup and Network Information Tool", BOLD, use_color)]
 
     for key, title, style in (
         ("ipv4", "IPv4 ADDRESS", BOLD + YELLOW),
