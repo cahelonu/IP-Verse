@@ -1,77 +1,114 @@
-# IPv4/IPv6 Address Application
+# IP-Verse: A Python-based IPv4/IPv6 Address Lookup and Network Information Tool
 
-A Python command-line prototype for network technicians. It shows this computer's current **public IPv4 and IPv6 addresses** together with the ISP, ASN, network, country code and geolocation, drawn as a colour-coded table. It was built for Project Activity 3 (Social Coding), Option 2.
+IP-Verse is a Python command-line application designed to retrieve and analyze public IPv4 and IPv6 addresses. Built with aspiring network and security professionals in mind, it provides essential network information in one organized, color-coded report, including ISP details, Autonomous System Numbers (ASN), network ranges, and geolocation data.
 
-## Quick start
+This project is developed as part of Project Activity 3: Social Coding for our course IT 26210. This project explores the fundamentals of IP addressing, API integration, modular programming, and collaborative software development.
 
+
+## Getting Started
+### Prerequisites
+
+Make sure you have the following installed:
+- Python 3.8 or later
+- Git
+- Internet connection
+
+### Installation
+**1. Clone the repository**
 ```bash
-git clone <repository-url>
-cd ip-address-app
+git clone https://github.com/cahelonu/IP-Verse.git
+cd IP-Verse
+```
+
+**2. Create a virtual environment**
+```bash
 python -m venv .venv
-# Windows:  .venv\Scripts\activate        macOS/Linux:  source .venv/bin/activate
+```
+
+**3. Activate the virtual environment**
+```bash
+# Windows
+.venv\Scripts\activate
+
+# macOS / Linux
+source .venv/bin/activate
+```
+
+**4. Install dependencies**
+```bash
 pip install -r requirements.txt
+```
+
+**5. Launch IP-Verse**
+```bash
 python main.py
 ```
 
-## Usage
+## Command Center: Usage
 
-| Command | What it does |
-| --- | --- |
-| `python main.py` | Shows your own public IPv4 and IPv6 details |
-| `python main.py -4` / `-6` | Checks only IPv4 or only IPv6 |
-| `python main.py --ip 8.8.8.8` | Looks up any IPv4 or IPv6 address |
-| `python main.py --json` | Prints JSON instead of tables |
-| `python main.py --save report.json` | Also saves the report to a file |
-| `python main.py --no-color` | Turns colours off |
+IP-Verse supports several command-line options depending on what you want to investigate.
 
-Exit codes: `0` success, `1` nothing found or file could not be saved, `2` invalid input.
+| Command | Description |
+|---|---|
+| `python main.py` | Retrieves your current public IPv4 and IPv6 information |
+| `python main.py -4` | Checks IPv4 information only |
+| `python main.py -6` | Checks IPv6 information only |
+| `python main.py --ip 8.8.8.8` | Looks up a specific IPv4 or IPv6 address |
+| `python main.py --json` | Displays results in JSON format |
+| `python main.py --save report.json` | Saves the generated report as a JSON file |
+| `python main.py --no-color` | Disables terminal colors |
 
-## Features
+### Exit Codes
+| Code | Meaning |
+|---|---|
+| `0` | Successful execution |
+| `1` | No information retrieved or report could not be saved |
+| `2` | Invalid input |
 
-1. Detects public IPv4 and IPv6 separately, so it shows whether the network is dual-stack, IPv4 only or IPv6 only.
-2. Shows ISP/organisation, ASN, network (CIDR), city, region, country, country code, postal code, coordinates, time zone and UTC offset.
-3. Classifies each address (global, private, loopback, link-local, multicast) using Python's `ipaddress` module, and skips the API for non-public addresses.
-4. Validates every address returned by an API and every address typed by the user.
-5. Friendly handling of timeouts, no connection, rate limits and bad responses. IPv6 being unavailable is a note, not a crash.
-6. Output as coloured ASCII tables, JSON, or a saved JSON file.
 
-## How it works
+### Project Components
 
+| File | Description |
+|---|---|
+| `main.py` | Application entry point |
+| `IP-Verse/api_client.py` | Communicates with ipify and ipapi.co, retrieves network information, and handles API-related errors |
+| `IP-Verse/report.py` | Combines API results into a structured report through `build_report()` |
+| `IP-Verse/formatter.py` | Generates terminal tables and JSON output |
+| `IP-Verse/cli.py` | Processes command-line arguments, displays results, and manages exit codes |
+| `tests/test_app.py` | Contains unit tests using mocked API calls for offline testing |
+
+
+### APIs Behind the Application
+IP-Verse integrates two publicly accessible APIs:
+
+| API | Purpose |
+|---|---|
+| [ipify](https://www.ipify.org/) | Retrieves public IPv4 and IPv6 addresses |
+| [ipapi.co](https://ipapi.co/) | Retrieves ISP, ASN, network, and geolocation details |
+
+**Technical note:** The application uses separate ipify endpoints for IPv4 and IPv6 detection. Retrieved addresses are then passed to ipapi.co for additional network information. Both services offer free access without requiring an API key, although ipapi.co applies rate limits to its free tier.
+
+
+## 🧪 Testing and Quality Assurance
+
+A reliable network utility should be able to handle more than just a successful API response. All external API calls are mocked during testing, allowing the test suite to run without an active internet connection.
+
+To run the tests:
+
+```bash
+python -m unittest discover -v
 ```
-main.py -> cli.py -> report.py -> api_client.py   (network calls and normalising)
-                  \-> formatter.py                 (tables and JSON text)
-```
 
-| File | Purpose |
-| --- | --- |
-| `ip_address_app/api_client.py` | Calls ipify (own address) and ipapi.co (details). Converts every failure into `IPLookupError`. |
-| `ip_address_app/report.py` | `build_report()` joins the calls into one dictionary. Network problems become notes in the report. |
-| `ip_address_app/formatter.py` | `render_report()` draws tables, `to_json()` dumps JSON. No network code. |
-| `ip_address_app/cli.py` | Reads arguments, prints the result, returns the exit code. |
-| `tests/test_app.py` | 26 unit tests. All API calls are mocked, so they run offline. |
+## 🛠️ Keeping the Project Alive
 
-APIs used: `api.ipify.org` (IPv4), `api6.ipify.org` (IPv6), `ipapi.co/<ip>/json/` (details). All are free and need no key. The free ipapi.co tier is rate limited.
+IP-Verse is designed with modularity and maintainability in mind. Future contributors can extend the application without having to rewrite its entire structure.
 
-## Continuing the project
+A few pointers for working with the codebase:
 
-* Run the tests first: `python -m unittest discover -v`.
-* To show a new field, add it to `normalize_details()` in `api_client.py` and to `build_rows()` in `formatter.py`.
-* To change API provider, rewrite only `api_client.py` and keep the keys that `normalize_details()` returns.
-* Open ideas are in the backlog below.
+- **Adding new network fields:** Update `normalize_details()` in `api_client.py` and `build_rows()` in `formatter.py`.
+- **Changing API providers:** Modify `api_client.py` while preserving the expected output keys from `normalize_details()`.
+- **Maintaining application stability:** Run the unit tests before submitting changes.
+- **Extending functionality:** Follow the existing modular structure when introducing new features.
 
-## Backlog (future enhancements)
 
-1. Fall back to a second details provider when ipapi.co fails or is rate limited.
-2. Cache results for a few minutes in a local file to protect the free rate limit.
-3. GitHub Actions workflow that runs the tests on every pull request.
-4. Interactive menu mode so technicians do not need to remember flags.
-5. Bulk lookup from a text file of addresses, exported to CSV.
-6. Reverse DNS (PTR record) and a simple latency check.
-7. History file with a "what changed since last time" view.
-8. Side-by-side IPv4 and IPv6 comparison of ISP and location.
-9. Package with `pyproject.toml` so it installs as an `ip-address-app` command.
-10. Optional API key support through an environment variable for higher rate limits.
-
-## Team workflow
-
-`main` is protected: nobody pushes to it directly. Each task lives on a `feature/<name>` branch, is merged through a pull request, and needs one teammate's review.
+**Repository:** [github.com/cahelonu/IP-Verse](https://github.com/cahelonu/IP-Verse)
